@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  secrets-chart:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2024-11-11T01:38:08.595174408+05:30"
+    description: A Helm chart for Kubernetes
+    digest: a93ab600cd45eb19d20f794802f4b30624e9a4a3e0567792b252f85a43cc66d8
+    name: secrets-chart
+    type: application
+    urls:
+    - https://saikumarmadagoni.github.io/secrets-operator/secrets-chart-0.1.0.tgz
+    version: 0.1.0
+generated: "2024-11-11T01:38:08.593483978+05:30"
