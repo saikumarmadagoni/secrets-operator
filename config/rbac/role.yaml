@@ -1,0 +1,32 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - mychart.my-chart.io
+  resources:
+  - awssecrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mychart.my-chart.io
+  resources:
+  - awssecrets/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mychart.my-chart.io
+  resources:
+  - awssecrets/status
+  verbs:
+  - get
+  - patch
+  - update

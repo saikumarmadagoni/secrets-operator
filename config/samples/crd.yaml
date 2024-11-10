@@ -1,0 +1,13 @@
+apiVersion: mychart.my-chart.io/v1
+kind: Awssecret
+metadata:
+  labels:
+    app.kubernetes.io/name: operator
+    app.kubernetes.io/managed-by: kustomize
+  name: awssecret-sample
+spec:
+  KubernetesSecretName: db-creds
+  AwsSecretName: db-secret
+  AwsSecretKeys:
+    - "username"
+    - "password"
