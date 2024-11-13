@@ -24,7 +24,8 @@ COPY internal/controller/ internal/controller/
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o manager cmd/main.go
 
 # Use root-based image to run the manager binary
-FROM gcr.io/distroless/static
+FROM gcr.io/distroless/base
+
 WORKDIR /
 COPY --from=builder /workspace/manager .
 USER root  # Change user to root
