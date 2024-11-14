@@ -26,8 +26,9 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ghcr.io/${{ github.repository }}/operator:latest .
+          commtid=$( echo {{ github.sha }} | cut -c 1-6 )
+          docker build -t ghcr.io/${{ github.repository }}/operator:$commitid .
 
       - name: Push Docker image
         run: |
-          docker push ghcr.io/${{ github.repository }}/operator:latest
+          docker push ghcr.io/${{ github.repository }}/operator:$commitid
