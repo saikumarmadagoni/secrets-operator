@@ -1,64 +1,32 @@
-# Start with Amazon Linux 2023 as the base image for compatibility with AWS SDKs
-FROM amazonlinux:2023 AS base
+# Start with an Amazon Linux base image for AWS SDK compatibility
+FROM amazonlinux:2 AS base
 
-# Install necessary dependencies
-RUN yum update -y && \
-    yum install -y \
-    tar \
-    gzip \
-    make \
-    git \
-    aws-cli \
-    shadow-utils \
-    && yum clean all
+# Install necessary packages for running your Go application
+RUN yum install -y shadow-utils && \
+    yum clean all
 
-# Install Go (replace with desired version)
-ARG GOLANG_VERSION=1.21.0
-RUN curl -OL https://go.dev/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf go${GOLANG_VERSION}.linux-amd64.tar.gz && \
-    rm -f go${GOLANG_VERSION}.linux-amd64.tar.gz
-ENV PATH="/usr/local/go/bin:${PATH}"
+# Set up the working directory and user
+WORKDIR /app
 
-# Build the Go application
-WORKDIR /workspace
-
-# Copy the Go Modules manifests
-COPY go.mod go.mod
-COPY go.sum go.sum
-
-# Download dependencies
+# Copy the Go Modules manifests and source code
+COPY go.mod go.sum ./
 RUN go mod download
-
-# Copy the Go source code
 COPY cmd/main.go cmd/main.go
 COPY api/ api/
 COPY internal/controller/ internal/controller/
 
-# Build the application binary
+# Build the Go binary
 RUN CGO_ENABLED=0 GOOS=linux go build -a -o manager cmd/main.go
 
 # Final stage: Use Amazon Linux as the runtime environment
-FROM amazonlinux:2023 AS runtime
+FROM amazonlinux:2
+WORKDIR /
 
-# Add AWS CLI and necessary packages
-RUN yum update -y && \
-    yum install -y aws-cli shadow-utils && \
-    yum clean all
+# Copy the compiled binary from the build stage
+COPY --from=base /app/manager /manager
 
-# Set up the application user and directories
-RUN adduser -u 1000 appuser && mkdir -p /app && chown appuser:appuser /app
+# Run as root user to ensure access to /root/.aws
+USER root
 
-# Set the working directory
-WORKDIR /app
-
-# Copy the Go application binary from the build stage
-COPY --from=base /workspace/manager /app/manager
-
-# Ensure permissions for the AWS credentials directory
-RUN mkdir -p /root/.aws && chown -R appuser:appuser /root/.aws
-
-# Switch to non-root user
-USER appuser
-
-# Entrypoint for the application
-ENTRYPOINT ["/app/manager"]
+# Set entrypoint to run the application
+ENTRYPOINT ["/manager"]
