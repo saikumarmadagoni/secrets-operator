@@ -4,13 +4,12 @@ FROM amazonlinux:2023 AS base
 # Install necessary dependencies
 RUN yum update -y && \
     yum install -y \
-    gcc \
     tar \
     gzip \
     make \
     git \
     aws-cli \
-    # Clean up
+    shadow-utils \
     && yum clean all
 
 # Install Go (replace with desired version)
@@ -43,11 +42,11 @@ FROM amazonlinux:2023 AS runtime
 
 # Add AWS CLI and necessary packages
 RUN yum update -y && \
-    yum install -y aws-cli && \
+    yum install -y aws-cli shadow-utils && \
     yum clean all
 
 # Set up the application user and directories
-RUN useradd -u 1000 appuser && mkdir -p /app && chown appuser:appuser /app
+RUN adduser -u 1000 appuser && mkdir -p /app && chown appuser:appuser /app
 
 # Set the working directory
 WORKDIR /app
