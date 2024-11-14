@@ -1,33 +1,65 @@
-# Build the manager binary
-FROM golang:1.21 AS builder
-ARG TARGETOS
-ARG TARGETARCH
+# Start with Amazon Linux 2023 as the base image for compatibility with AWS SDKs
+FROM amazonlinux:2023 AS base
 
+# Install necessary dependencies
+RUN yum update -y && \
+    yum install -y \
+    gcc \
+    tar \
+    gzip \
+    make \
+    git \
+    aws-cli \
+    # Clean up
+    && yum clean all
+
+# Install Go (replace with desired version)
+ARG GOLANG_VERSION=1.21.0
+RUN curl -OL https://go.dev/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go${GOLANG_VERSION}.linux-amd64.tar.gz && \
+    rm -f go${GOLANG_VERSION}.linux-amd64.tar.gz
+ENV PATH="/usr/local/go/bin:${PATH}"
+
+# Build the Go application
 WORKDIR /workspace
+
 # Copy the Go Modules manifests
 COPY go.mod go.mod
 COPY go.sum go.sum
-# cache deps before building and copying source so that we don't need to re-download as much
-# and so that source changes don't invalidate our downloaded layer
+
+# Download dependencies
 RUN go mod download
 
-# Copy the go source
+# Copy the Go source code
 COPY cmd/main.go cmd/main.go
 COPY api/ api/
 COPY internal/controller/ internal/controller/
 
-# Build
-# the GOARCH has not a default value to allow the binary be built according to the host where the command
-# was called. For example, if we call make docker-build in a local env which has the Apple Silicon M1 SO
-# the docker BUILDPLATFORM arg will be linux/arm64 when for Apple x86 it will be linux/amd64. Therefore,
-# by leaving it empty we can ensure that the container and binary shipped on it will have the same platform.
-RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o manager cmd/main.go
+# Build the application binary
+RUN CGO_ENABLED=0 GOOS=linux go build -a -o manager cmd/main.go
 
-# Use distroless as minimal base image to package the manager binary
-# Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot
-WORKDIR /
-COPY --from=builder /workspace/manager .
-USER 65532:65532
+# Final stage: Use Amazon Linux as the runtime environment
+FROM amazonlinux:2023 AS runtime
 
-ENTRYPOINT ["/manager"]
+# Add AWS CLI and necessary packages
+RUN yum update -y && \
+    yum install -y aws-cli && \
+    yum clean all
+
+# Set up the application user and directories
+RUN useradd -u 1000 appuser && mkdir -p /app && chown appuser:appuser /app
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the Go application binary from the build stage
+COPY --from=base /workspace/manager /app/manager
+
+# Ensure permissions for the AWS credentials directory
+RUN mkdir -p /root/.aws && chown -R appuser:appuser /root/.aws
+
+# Switch to non-root user
+USER appuser
+
+# Entrypoint for the application
+ENTRYPOINT ["/app/manager"]
