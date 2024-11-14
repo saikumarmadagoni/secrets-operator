@@ -27,6 +27,7 @@ jobs:
       - name: Build Docker image
         run: |
           commitid=$( echo ${{ github.sha }} | cut -c 1-6 )
+          export commitid=$commitid
           docker build -t ghcr.io/${{ github.repository }}/operator:$commitid .
 
       - name: Push Docker image
