@@ -166,8 +166,8 @@ func (r *AwssecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	errorget := r.Get(ctx, client.ObjectKey{Name: secret.Name, Namespace: secret.Namespace}, existingSecret)
 	if errorget == nil {
 		// Secret already exists, no need to create it
-		fmt.Println("Secret already exists")
-		return reconcile.Result{}, nil
+		fmt.Println("Secret already exists need to update if any changes ")
+		
 	}
 	/* else if client.IgnoreNotFound(err) == nil {
 		fmt.Println("secret do not exist error")
