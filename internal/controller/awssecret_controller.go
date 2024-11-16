@@ -167,6 +167,12 @@ func (r *AwssecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	if errorget == nil {
 		// Secret already exists, no need to create it
 		fmt.Println("Secret already exists need to update if any changes ")
+		err := r.Client.Ureate(ctx, secret)
+		if err!=nil {
+			fmt.Println("issue updating the secret")
+			
+			}
+		return ctrl.Result{}, nil
 		
 	}
 	/* else if client.IgnoreNotFound(err) == nil {
