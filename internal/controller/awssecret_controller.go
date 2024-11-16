@@ -142,7 +142,7 @@ func (r *AwssecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	// Print the map to verify the result
 	fmt.Println(mapresult)
 
-	var dataobject map[string][]byte
+	var dataobject = make(map[string][]byte)
 
 	for key,value := range mapresult {
 		dataobject[key]=[]byte(value)
