@@ -23,6 +23,8 @@ import (
 
 	"encoding/json"
 
+	"slices"
+
 	corev1 "k8s.io/api/core/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -145,7 +147,10 @@ func (r *AwssecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	var dataobject = make(map[string][]byte)
 
 	for key,value := range mapresult {
-		dataobject[key]=[]byte(value)
+		var contains = slices.Contains(awssecretkeys, key)
+		if contains {
+			dataobject[key]=[]byte(value)
+		}
 	}
 
 	// var byteusername = []byte(mapresult["username"])
