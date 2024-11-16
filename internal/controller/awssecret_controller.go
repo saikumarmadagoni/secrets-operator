@@ -41,7 +41,7 @@ import (
 	mychartv1 "github.com/saikumarmadagoni/secrets-operator/api/v1"
 
 	//	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	
 )
 
 var logger = log.Log.WithName("controller_scaler")
