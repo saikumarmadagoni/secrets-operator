@@ -142,19 +142,23 @@ func (r *AwssecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	// Print the map to verify the result
 	fmt.Println(mapresult)
 
-	var byteusername = []byte(mapresult["username"])
+	var dataobject map[string][]byte
 
-	var bytepassword = []byte(mapresult["password"])
+	for key,value := range mapresult {
+		dataobject[key]=[]byte(value)
+	}
+
+	// var byteusername = []byte(mapresult["username"])
+
+	// var bytepassword = []byte(mapresult["password"])
+	
 
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      kubernetessecret, // Name of the secret
 			Namespace: req.Namespace,    // Namespace in which to create the secret
 		},
-		Data: map[string][]byte{
-			"username": byteusername, // Replace with actual data
-			"password": bytepassword, // Replace with actual data
-		},
+		Data: dataobject,
 	}
 
 	existingSecret := &corev1.Secret{}
